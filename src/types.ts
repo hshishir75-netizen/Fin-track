@@ -23,14 +23,18 @@ export interface Receivable {
   amount: number;
   dueDate: string;
   status: 'pending' | 'received' | 'overdue';
+  note?: string;
 }
 
 export interface FutureIncome {
   id: string;
-  source: string;
+  name: string;
+  title: string;
   amount: number;
-  expectedDate: string;
-  probability: number; // 0 to 1
+  dueDate: string;
+  receivedDate?: string;
+  status: 'pending' | 'received';
+  note?: string;
 }
 
 export type ViewType = 'balance' | 'cash' | 'receivable' | 'future' | 'history';

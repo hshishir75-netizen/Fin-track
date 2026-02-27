@@ -10,10 +10,13 @@ import { ViewType, Account, Transaction, Receivable, FutureIncome } from './type
 
 // Mock Data
 const INITIAL_ACCOUNTS: Account[] = [
-  { id: '1', name: 'Main Savings', balance: 12450.50, type: 'savings' },
-  { id: '2', name: 'Checking Account', balance: 3200.00, type: 'bank' },
-  { id: '3', name: 'Cash Wallet', balance: 450.00, type: 'cash' },
-  { id: '4', name: 'Investment Portfolio', balance: 45000.00, type: 'investment' },
+  { id: '1', name: 'Cash', balance: 5000, type: 'cash' },
+  { id: '2', name: 'Reserve Cash', balance: 15000, type: 'cash' },
+  { id: '3', name: 'Bkash', balance: 2500, type: 'bank' },
+  { id: '4', name: 'Nagad', balance: 1800, type: 'bank' },
+  { id: '5', name: 'Rocket', balance: 1200, type: 'bank' },
+  { id: '6', name: 'Agrani Bank', balance: 45000, type: 'bank' },
+  { id: '7', name: 'IBBL', balance: 32000, type: 'bank' },
 ];
 
 const INITIAL_TRANSACTIONS: Transaction[] = [
@@ -31,17 +34,113 @@ const INITIAL_RECEIVABLES: Receivable[] = [
 ];
 
 const INITIAL_FUTURE_INCOME: FutureIncome[] = [
-  { id: 'f1', source: 'Quarterly Bonus', amount: 5000, expectedDate: '2024-07-15', probability: 0.8 },
-  { id: 'f2', source: 'Tax Refund', amount: 1200, expectedDate: '2024-06-10', probability: 0.95 },
-  { id: 'f3', source: 'Stock Dividends', amount: 300, expectedDate: '2024-06-20', probability: 0.7 },
+  { id: 'f1', name: 'Company X', title: 'Quarterly Bonus', amount: 5000, dueDate: '2024-07-15', status: 'pending' },
+  { id: 'f2', name: 'IRS', title: 'Tax Refund', amount: 1200, dueDate: '2024-06-10', status: 'pending' },
+  { id: 'f3', name: 'E-Trade', title: 'Stock Dividends', amount: 300, dueDate: '2024-06-20', status: 'pending' },
 ];
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewType>('balance');
-  const [accounts] = useState<Account[]>(INITIAL_ACCOUNTS);
-  const [transactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [receivables] = useState<Receivable[]>(INITIAL_RECEIVABLES);
-  const [futureIncomes] = useState<FutureIncome[]>(INITIAL_FUTURE_INCOME);
+  const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
+  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [receivables, setReceivables] = useState<Receivable[]>(INITIAL_RECEIVABLES);
+  const [futureIncomes, setFutureIncomes] = useState<FutureIncome[]>(INITIAL_FUTURE_INCOME);
+
+  const addAccount = (newAccount: Omit<Account, 'id'>) => {
+    const account: Account = {
+      ...newAccount,
+      id: Math.random().toString(36).substr(2, 9)
+    };
+    setAccounts([...accounts, account]);
+  };
+
+  const addReceivable = (newReceivable: Omit<Receivable, 'id'>) => {
+    const receivable: Receivable = {
+      ...newReceivable,
+      id: Math.random().toString(36).substr(2, 9)
+    };
+    setReceivables([receivable, ...receivables]);
+  };
+
+  const addFutureIncome = (newIncome: Omit<FutureIncome, 'id'>) => {
+    const income: FutureIncome = {
+      ...newIncome,
+      id: Math.random().toString(36).substr(2, 9)
+    };
+    setFutureIncomes([income, ...futureIncomes]);
+  };
+
+  const receiveReceivable = (receivableId: string, accountId: string, amountReceived: number) => {
+    const receivable = receivables.find(r => r.id === receivableId);
+    if (!receivable || receivable.status === 'received') return;
+
+    const isFullPayment = amountReceived >= receivable.amount;
+
+    // Update receivable
+    setReceivables(prev => prev.map(r => {
+      if (r.id === receivableId) {
+        if (isFullPayment) {
+          return { ...r, status: 'received', amount: 0 };
+        } else {
+          return { ...r, amount: r.amount - amountReceived };
+        }
+      }
+      return r;
+    }));
+
+    // Add to account balance
+    handleTransaction(accountId, amountReceived, 'income', `Received from ${receivable.from}: ${receivable.note || ''}`);
+  };
+
+  const receiveFutureIncome = (incomeId: string, accountId: string, amountReceived: number) => {
+    const income = futureIncomes.find(i => i.id === incomeId);
+    if (!income || income.status === 'received') return;
+
+    const isFullPayment = amountReceived >= income.amount;
+
+    // Update future income
+    setFutureIncomes(prev => prev.map(i => {
+      if (i.id === incomeId) {
+        if (isFullPayment) {
+          return { 
+            ...i, 
+            status: 'received', 
+            amount: 0, 
+            receivedDate: new Date().toISOString().split('T')[0] 
+          };
+        } else {
+          return { ...i, amount: i.amount - amountReceived };
+        }
+      }
+      return i;
+    }));
+
+    // Add to account balance
+    handleTransaction(accountId, amountReceived, 'income', `Received Future Income (${income.title}): ${income.note || ''}`);
+  };
+
+  const handleTransaction = (accountId: string, amount: number, type: 'income' | 'expense', note: string) => {
+    // Update account balance
+    setAccounts(prevAccounts => prevAccounts.map(acc => {
+      if (acc.id === accountId) {
+        const newBalance = type === 'income' ? acc.balance + amount : acc.balance - amount;
+        return { ...acc, balance: newBalance };
+      }
+      return acc;
+    }));
+
+    // Add to transactions history
+    const newTransaction: Transaction = {
+      id: Math.random().toString(36).substr(2, 9),
+      date: new Date().toISOString().split('T')[0],
+      amount,
+      category: type === 'income' ? 'Direct Income' : 'Direct Expense',
+      description: note || (type === 'income' ? 'Credit' : 'Debit'),
+      type,
+      accountId
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
 
   // Scroll to top on view change
   useEffect(() => {
@@ -53,11 +152,26 @@ export default function App() {
       case 'balance':
         return <BalanceSheet accounts={accounts} receivables={receivables} />;
       case 'cash':
-        return <CashView accounts={accounts} recentTransactions={transactions} />;
+        return <CashView 
+          accounts={accounts} 
+          recentTransactions={transactions} 
+          onAddAccount={addAccount} 
+          onTransaction={handleTransaction}
+        />;
       case 'receivable':
-        return <ReceivablesView receivables={receivables} />;
+        return <ReceivablesView 
+          receivables={receivables} 
+          accounts={accounts}
+          onAddReceivable={addReceivable} 
+          onReceive={receiveReceivable}
+        />;
       case 'future':
-        return <FutureIncomeView futureIncomes={futureIncomes} />;
+        return <FutureIncomeView 
+          futureIncomes={futureIncomes} 
+          accounts={accounts}
+          onAddFutureIncome={addFutureIncome}
+          onReceive={receiveFutureIncome}
+        />;
       case 'history':
         return <HistoryView transactions={transactions} />;
       default:
