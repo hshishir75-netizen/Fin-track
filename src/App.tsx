@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { BottomNav } from './components/BottomNav';
 import { BalanceSheet } from './components/BalanceSheet';
 import { CashView } from './components/CashView';
+import { DailyTransactionView } from './components/DailyTransactionView';
 import { ReceivablesView } from './components/ReceivablesView';
 import { FutureIncomeView } from './components/FutureIncomeView';
 import { HistoryView } from './components/HistoryView';
+import { YearlyStatementView } from './components/YearlyStatementView';
 import { ViewType, Account, Transaction, Receivable, FutureIncome } from './types';
 
 // Mock Data
@@ -20,11 +22,15 @@ const INITIAL_ACCOUNTS: Account[] = [
 ];
 
 const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: 't1', date: '2024-05-20', amount: 3500, category: 'Salary', description: 'Monthly Salary', type: 'income', accountId: '2' },
-  { id: 't2', date: '2024-05-21', amount: 120, category: 'Groceries', description: 'Whole Foods', type: 'expense', accountId: '2' },
-  { id: 't3', date: '2024-05-22', amount: 45, category: 'Dining', description: 'Starbucks Coffee', type: 'expense', accountId: '3' },
-  { id: 't4', date: '2024-05-23', amount: 800, category: 'Rent', description: 'Apartment Rent', type: 'expense', accountId: '2' },
-  { id: 't5', date: '2024-05-24', amount: 200, category: 'Freelance', description: 'Logo Design Project', type: 'income', accountId: '2' },
+  { id: 't1', date: '2026-02-20', amount: 3500, category: 'Salary', description: 'Monthly Salary', type: 'income', accountId: '2' },
+  { id: 't2', date: '2026-02-21', amount: 120, category: 'Groceries', description: 'Whole Foods', type: 'expense', accountId: '2' },
+  { id: 't3', date: '2026-01-22', amount: 45, category: 'Dining', description: 'Starbucks Coffee', type: 'expense', accountId: '3' },
+  { id: 't4', date: '2026-01-23', amount: 800, category: 'Rent', description: 'Apartment Rent', type: 'expense', accountId: '2' },
+  { id: 't5', date: '2026-01-24', amount: 200, category: 'Freelance', description: 'Logo Design Project', type: 'income', accountId: '2' },
+  { id: 't6', date: '2025-12-15', amount: 3500, category: 'Salary', description: 'Monthly Salary', type: 'income', accountId: '2' },
+  { id: 't7', date: '2025-12-10', amount: 1500, category: 'Expense', description: 'Laptop Purchase', type: 'expense', accountId: '6' },
+  { id: 't8', date: '2025-11-05', amount: 3500, category: 'Salary', description: 'Monthly Salary', type: 'income', accountId: '2' },
+  { id: 't9', date: '2025-11-12', amount: 500, category: 'Expense', description: 'Car Service', type: 'expense', accountId: '2' },
 ];
 
 const INITIAL_RECEIVABLES: Receivable[] = [
@@ -119,7 +125,7 @@ export default function App() {
     handleTransaction(accountId, amountReceived, 'income', `Received Future Income (${income.title}): ${income.note || ''}`);
   };
 
-  const handleTransaction = (accountId: string, amount: number, type: 'income' | 'expense', note: string) => {
+  const handleTransaction = (accountId: string, amount: number, type: 'income' | 'expense', note: string, customDate?: string) => {
     // Update account balance
     setAccounts(prevAccounts => prevAccounts.map(acc => {
       if (acc.id === accountId) {
@@ -132,7 +138,7 @@ export default function App() {
     // Add to transactions history
     const newTransaction: Transaction = {
       id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toISOString().split('T')[0],
+      date: customDate || new Date().toISOString().split('T')[0],
       amount,
       category: type === 'income' ? 'Direct Income' : 'Direct Expense',
       description: note || (type === 'income' ? 'Credit' : 'Debit'),
@@ -150,7 +156,13 @@ export default function App() {
   const renderView = () => {
     switch (activeView) {
       case 'balance':
-        return <BalanceSheet accounts={accounts} receivables={receivables} />;
+        return <BalanceSheet accounts={accounts} receivables={receivables} futureIncomes={futureIncomes} transactions={transactions} />;
+      case 'daily':
+        return <DailyTransactionView 
+          accounts={accounts} 
+          transactions={transactions} 
+          onTransaction={handleTransaction} 
+        />;
       case 'cash':
         return <CashView 
           accounts={accounts} 
@@ -173,7 +185,9 @@ export default function App() {
           onReceive={receiveFutureIncome}
         />;
       case 'history':
-        return <HistoryView transactions={transactions} />;
+        return <HistoryView transactions={transactions} accounts={accounts} />;
+      case 'yearly':
+        return <YearlyStatementView transactions={transactions} />;
       default:
         return <BalanceSheet accounts={accounts} receivables={receivables} />;
     }

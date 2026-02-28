@@ -4,7 +4,9 @@ import {
   Wallet, 
   HandCoins, 
   TrendingUp, 
-  History 
+  History,
+  PlusCircle,
+  BarChart3
 } from 'lucide-react';
 import { ViewType } from '../types';
 import { clsx, type ClassValue } from 'clsx';
@@ -21,11 +23,13 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeView, onViewChange }) => {
   const navItems = [
-    { id: 'balance' as ViewType, label: 'Balance Sheet', icon: LayoutDashboard },
+    { id: 'balance' as ViewType, label: 'Balance', icon: LayoutDashboard },
+    { id: 'daily' as ViewType, label: 'Daily', icon: PlusCircle },
     { id: 'cash' as ViewType, label: 'Cash', icon: Wallet },
-    { id: 'receivable' as ViewType, label: 'Cash Receivable', icon: HandCoins },
-    { id: 'future' as ViewType, label: 'Future Income', icon: TrendingUp },
+    { id: 'receivable' as ViewType, label: 'Receivable', icon: HandCoins },
+    { id: 'future' as ViewType, label: 'Future', icon: TrendingUp },
     { id: 'history' as ViewType, label: 'History', icon: History },
+    { id: 'yearly' as ViewType, label: 'Yearly', icon: BarChart3 },
   ];
 
   return (

@@ -37,4 +37,4 @@ export interface FutureIncome {
   note?: string;
 }
 
-export type ViewType = 'balance' | 'cash' | 'receivable' | 'future' | 'history';
+export type ViewType = 'balance' | 'daily' | 'cash' | 'receivable' | 'future' | 'history' | 'yearly';
