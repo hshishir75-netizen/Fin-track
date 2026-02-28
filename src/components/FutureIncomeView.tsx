@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Plus, X, Calendar, DollarSign, FileText, ArrowRightLeft, CheckCircle2, Clock, User } from 'lucide-react';
+import { Target, Plus, X, Calendar, DollarSign, FileText, ArrowRightLeft, CheckCircle2, Clock, User, Trash2 } from 'lucide-react';
 import { FutureIncome, Account } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -7,10 +7,11 @@ interface FutureIncomeViewProps {
   futureIncomes: FutureIncome[];
   accounts: Account[];
   onAddFutureIncome: (income: Omit<FutureIncome, 'id'>) => void;
+  onDeleteFutureIncome: (incomeId: string) => void;
   onReceive: (incomeId: string, accountId: string, amount: number) => void;
 }
 
-export const FutureIncomeView: React.FC<FutureIncomeViewProps> = ({ futureIncomes, accounts, onAddFutureIncome, onReceive }) => {
+export const FutureIncomeView: React.FC<FutureIncomeViewProps> = ({ futureIncomes, accounts, onAddFutureIncome, onDeleteFutureIncome, onReceive }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
@@ -172,8 +173,17 @@ export const FutureIncomeView: React.FC<FutureIncomeViewProps> = ({ futureIncome
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-900">${fi.amount.toLocaleString()}</p>
+                <div className="text-right flex flex-col items-end">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <p className="text-sm font-bold text-slate-900">${fi.amount.toLocaleString()}</p>
+                    <button 
+                      onClick={() => onDeleteFutureIncome(fi.id)}
+                      className="text-slate-300 hover:text-rose-500 transition-colors p-1"
+                      title="Delete Entry"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                   <p className={`text-[10px] font-bold uppercase tracking-tighter ${
                     fi.status === 'received' ? 'text-emerald-500' : 'text-indigo-500'
                   }`}>{fi.status}</p>

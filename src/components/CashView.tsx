@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, X } from 'lucide-react';
+import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, X, Trash2 } from 'lucide-react';
 import { Account, Transaction } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -7,15 +7,17 @@ interface CashViewProps {
   accounts: Account[];
   recentTransactions: Transaction[];
   onAddAccount: (account: Omit<Account, 'id'>) => void;
+  onDeleteAccount: (accountId: string) => void;
   onTransaction: (accountId: string, amount: number, type: 'income' | 'expense', note: string) => void;
 }
 
 interface AccountCardProps {
   acc: Account;
+  onDelete: (accountId: string) => void;
   onTransaction: (accountId: string, amount: number, type: 'income' | 'expense', note: string) => void;
 }
 
-const AccountCard: React.FC<AccountCardProps> = ({ acc, onTransaction }) => {
+const AccountCard: React.FC<AccountCardProps> = ({ acc, onDelete, onTransaction }) => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
 
@@ -31,10 +33,19 @@ const AccountCard: React.FC<AccountCardProps> = ({ acc, onTransaction }) => {
   return (
     <div className="bg-indigo-600 rounded-3xl p-4 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between min-h-[180px]">
       <div className="flex justify-between items-start mb-2">
-        <div className="bg-white/20 p-1.5 rounded-lg">
-          <Wallet size={14} />
+        <div className="flex items-center space-x-2">
+          <div className="bg-white/20 p-1.5 rounded-lg">
+            <Wallet size={14} />
+          </div>
+          <span className="text-[7px] font-bold uppercase tracking-widest opacity-60">{acc.type}</span>
         </div>
-        <span className="text-[7px] font-bold uppercase tracking-widest opacity-60">{acc.type}</span>
+        <button 
+          onClick={() => onDelete(acc.id)}
+          className="text-white/40 hover:text-rose-300 transition-colors p-1"
+          title="Delete Account"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
       
       <div className="mb-3">
@@ -76,7 +87,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ acc, onTransaction }) => {
   );
 };
 
-export const CashView: React.FC<CashViewProps> = ({ accounts, recentTransactions, onAddAccount, onTransaction }) => {
+export const CashView: React.FC<CashViewProps> = ({ accounts, recentTransactions, onAddAccount, onDeleteAccount, onTransaction }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newBalance, setNewBalance] = useState('');
@@ -176,7 +187,7 @@ export const CashView: React.FC<CashViewProps> = ({ accounts, recentTransactions
       <section className="px-4">
         <div className="grid grid-cols-2 gap-4">
           {accounts.map((acc) => (
-            <AccountCard key={acc.id} acc={acc} onTransaction={onTransaction} />
+            <AccountCard key={acc.id} acc={acc} onDelete={onDeleteAccount} onTransaction={onTransaction} />
           ))}
           
           {/* Add New Account Card */}

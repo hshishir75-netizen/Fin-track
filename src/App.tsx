@@ -95,6 +95,26 @@ export default function App() {
     setAccounts([...accounts, account]);
   };
 
+  const deleteAccount = (accountId: string) => {
+    if (window.confirm('Are you sure you want to delete this account? All associated balance data will be removed from the current view.')) {
+      setAccounts(prev => prev.filter(acc => acc.id !== accountId));
+      // Optional: We could also filter transactions, but usually history should remain.
+      // However, for this app's simplicity, we just remove the account.
+    }
+  };
+
+  const deleteReceivable = (receivableId: string) => {
+    if (window.confirm('Are you sure you want to delete this receivable?')) {
+      setReceivables(prev => prev.filter(r => r.id !== receivableId));
+    }
+  };
+
+  const deleteFutureIncome = (incomeId: string) => {
+    if (window.confirm('Are you sure you want to delete this future income?')) {
+      setFutureIncomes(prev => prev.filter(i => i.id !== incomeId));
+    }
+  };
+
   const addReceivable = (newReceivable: Omit<Receivable, 'id'>) => {
     const receivable: Receivable = {
       ...newReceivable,
@@ -198,6 +218,7 @@ export default function App() {
           accounts={accounts} 
           recentTransactions={transactions} 
           onAddAccount={addAccount} 
+          onDeleteAccount={deleteAccount}
           onTransaction={handleTransaction}
         />;
       case 'receivable':
@@ -205,6 +226,7 @@ export default function App() {
           receivables={receivables} 
           accounts={accounts}
           onAddReceivable={addReceivable} 
+          onDeleteReceivable={deleteReceivable}
           onReceive={receiveReceivable}
         />;
       case 'future':
@@ -212,6 +234,7 @@ export default function App() {
           futureIncomes={futureIncomes} 
           accounts={accounts}
           onAddFutureIncome={addFutureIncome}
+          onDeleteFutureIncome={deleteFutureIncome}
           onReceive={receiveFutureIncome}
         />;
       case 'history':

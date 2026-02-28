@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckCircle2, AlertCircle, Plus, X, Calendar, User, DollarSign, FileText, ArrowRightLeft } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Plus, X, Calendar, User, DollarSign, FileText, ArrowRightLeft, Trash2 } from 'lucide-react';
 import { Receivable, Account } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -7,10 +7,11 @@ interface ReceivablesViewProps {
   receivables: Receivable[];
   accounts: Account[];
   onAddReceivable: (receivable: Omit<Receivable, 'id'>) => void;
+  onDeleteReceivable: (receivableId: string) => void;
   onReceive: (receivableId: string, accountId: string, amount: number) => void;
 }
 
-export const ReceivablesView: React.FC<ReceivablesViewProps> = ({ receivables, accounts, onAddReceivable, onReceive }) => {
+export const ReceivablesView: React.FC<ReceivablesViewProps> = ({ receivables, accounts, onAddReceivable, onDeleteReceivable, onReceive }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -158,8 +159,17 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({ receivables, a
                     <p className="text-xs text-slate-400">Due {r.dueDate}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-900">${r.amount.toLocaleString()}</p>
+                <div className="text-right flex flex-col items-end">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <p className="text-sm font-bold text-slate-900">${r.amount.toLocaleString()}</p>
+                    <button 
+                      onClick={() => onDeleteReceivable(r.id)}
+                      className="text-slate-300 hover:text-rose-500 transition-colors p-1"
+                      title="Delete Entry"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                   <p className={`text-[10px] font-bold uppercase tracking-tighter ${
                     r.status === 'received' ? 'text-emerald-500' : 
                     r.status === 'overdue' ? 'text-rose-500' : 
