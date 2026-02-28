@@ -28,29 +28,29 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ transactions, accounts
   // We'll iterate through all transactions from newest to oldest.
   // The balance at the end of a month is the balance AFTER all transactions of that month have occurred.
   
-  // First, identify all unique months in the transactions
-  const months = Array.from(new Set(transactions.map(t => t.date.substring(0, 7)))).sort().reverse() as string[];
+  // First, identify all unique months in the transactions and include the current month
+  const currentMonthStr = new Date().toISOString().substring(0, 7);
+  const monthsSet = new Set(transactions.map(t => t.date.substring(0, 7)));
+  monthsSet.add(currentMonthStr);
+  const months = Array.from(monthsSet).sort().reverse() as string[];
   
   // To calculate end balances correctly, we need to know the balance at each month's end.
   // We start from the current balance and work backwards.
   const monthEndBalances: Record<string, number> = {};
   
-  let runningBalance = currentBalance;
-  const today = new Date().toISOString().split('T')[0].substring(0, 7);
-  
-  // If there are no transactions for the current month yet, the current balance is the end balance for the current month.
-  monthEndBalances[today] = runningBalance;
-
   // Group transactions and calculate totals
+  months.forEach(m => {
+    summaries[m] = { month: m, income: 0, expense: 0, endBalance: 0 };
+  });
+
   transactions.forEach(tx => {
     const month = tx.date.substring(0, 7);
-    if (!summaries[month]) {
-      summaries[month] = { month, income: 0, expense: 0, endBalance: 0 };
-    }
-    if (tx.type === 'income') {
-      summaries[month].income += tx.amount;
-    } else {
-      summaries[month].expense += tx.amount;
+    if (summaries[month]) {
+      if (tx.type === 'income') {
+        summaries[month].income += tx.amount;
+      } else {
+        summaries[month].expense += tx.amount;
+      }
     }
   });
 

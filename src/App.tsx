@@ -9,6 +9,12 @@ import { FutureIncomeView } from './components/FutureIncomeView';
 import { HistoryView } from './components/HistoryView';
 import { YearlyStatementView } from './components/YearlyStatementView';
 import { ViewType, Account, Transaction, Receivable, FutureIncome } from './types';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 // Mock Data
 const INITIAL_ACCOUNTS: Account[] = [
@@ -47,10 +53,44 @@ const INITIAL_FUTURE_INCOME: FutureIncome[] = [
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewType>('balance');
-  const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [receivables, setReceivables] = useState<Receivable[]>(INITIAL_RECEIVABLES);
-  const [futureIncomes, setFutureIncomes] = useState<FutureIncome[]>(INITIAL_FUTURE_INCOME);
+  
+  // Initialize state from localStorage or mock data
+  const [accounts, setAccounts] = useState<Account[]>(() => {
+    const saved = localStorage.getItem('finance_accounts');
+    return saved ? JSON.parse(saved) : INITIAL_ACCOUNTS;
+  });
+  
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    const saved = localStorage.getItem('finance_transactions');
+    return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+  });
+  
+  const [receivables, setReceivables] = useState<Receivable[]>(() => {
+    const saved = localStorage.getItem('finance_receivables');
+    return saved ? JSON.parse(saved) : INITIAL_RECEIVABLES;
+  });
+  
+  const [futureIncomes, setFutureIncomes] = useState<FutureIncome[]>(() => {
+    const saved = localStorage.getItem('finance_future_incomes');
+    return saved ? JSON.parse(saved) : INITIAL_FUTURE_INCOME;
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+
+  const saveData = () => {
+    setIsSaving(true);
+    localStorage.setItem('finance_accounts', JSON.stringify(accounts));
+    localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+    localStorage.setItem('finance_receivables', JSON.stringify(receivables));
+    localStorage.setItem('finance_future_incomes', JSON.stringify(futureIncomes));
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowSaveSuccess(true);
+      setTimeout(() => setShowSaveSuccess(false), 2000);
+    }, 600);
+  };
 
   const addAccount = (newAccount: Omit<Account, 'id'>) => {
     const account: Account = {
@@ -195,6 +235,35 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] max-w-md mx-auto relative shadow-2xl shadow-black/5">
+      {/* Global Save Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <button 
+          onClick={saveData}
+          disabled={isSaving}
+          className={cn(
+            "flex items-center space-x-2 px-4 py-2 rounded-full shadow-lg transition-all active:scale-95",
+            showSaveSuccess 
+              ? "bg-emerald-500 text-white" 
+              : "bg-slate-900 text-white hover:bg-slate-800"
+          )}
+        >
+          {isSaving ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : showSaveSuccess ? (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+          )}
+          <span className="text-xs font-bold uppercase tracking-widest">
+            {isSaving ? 'Saving...' : showSaveSuccess ? 'Saved!' : 'Save'}
+          </span>
+        </button>
+      </div>
+
       <main className="min-h-screen">
         <AnimatePresence mode="wait">
           <motion.div
